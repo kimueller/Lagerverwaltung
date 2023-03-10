@@ -1,0 +1,62 @@
+﻿@page "/business-cases/{businessCaseID}/new-stock-movement/"
+@using WarehouseManagment.Data.Models;
+@using WarehouseManagment.Data.Services;
+@inject NavigationManager navMan
+@inject IWarehouseService warehouseService
+
+<h3>New stock movement</h3>
+<h4>Business case: @businessCaseID</h4>
+<EditForm Model="@stockMovement" OnValidSubmit="@Submit">
+
+    <div class="form-group">
+        <label for="ProcessType">Type</label>
+        <InputSelect @bind-Value="@stockMovement.ProcessTypeID" class="form-control">
+            @foreach (var process in processTypes)
+            {
+                <option value="@process.ProcessTypeID">@process.TypeName </option>
+            }
+        </InputSelect>
+    </div>
+    <div class="form-group">
+        <label for="Article">Article</label>
+        <InputSelect @bind-Value="@stockMovement.ArticleID" class="form-control">
+            @foreach (var article in articles)
+            {
+                <option value="@article.ArticleID">@article.ArticleName</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="form-group">
+        <label for="Amount">Amount</label>
+        <InputNumber placeholder="1..." @bind-Value="@stockMovement.Amount" class="form-control"></InputNumber>
+    </div>
+
+    <br />
+    <button class="btn btn-dark">Submit</button>
+</EditForm>
+
+
+
+@code
+{
+    StockMovement stockMovement = new StockMovement();
+
+    [Parameter]
+    public string businessCaseID { get; set; }
+
+    List<Article> articles;
+    List<ProcessType> processTypes;
+
+    protected override void OnInitialized()
+    {
+        articles = warehouseService.GetArticles();
+        processTypes = warehouseService.GetProcessTypes();
+    }
+
+    private void Submit()
+    {
+        stockMovement.BusinessCaseID = Convert.ToInt32(businessCaseID);
+        warehouseService.NewStockMovement(stockMovement);
+        navMan.NavigateTo("/business-cases/" + businessCaseID);
+    }
+}

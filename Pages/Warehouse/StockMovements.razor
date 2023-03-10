@@ -1,0 +1,92 @@
+﻿@page "/business-cases/{businessCaseID}"
+@using WarehouseManagment.Data.Models;
+@using WarehouseManagment.Data.Services;
+@inject IWarehouseService warehouseService
+@inject NavigationManager navMan
+
+
+<AuthorizeView>
+    <Authorized>
+        <h3>Stock movements</h3>
+        <h4>Business case: <b>@businessCaseID</b></h4>
+        <label>New stock movement: </label>
+        <button class="btn btn-success border-1" @onclick="() => AddStockMovement(businessCaseID)">NEW MOVEMENT</button>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Stock movment number</th>
+                    <th>Type</th>
+                    <th>Article</th>
+                    <th>Amount</th>
+                    <th>Price</th>
+                    <th class="text-center">Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var movement in stockMovements)
+                {
+                    <tr>
+                        <td>@movement.StockMovementID</td>
+                        <td>@movement.ProcessType.TypeName</td>
+                        <td>@movement.Article.ArticleName</td>
+                        <td>@movement.Amount</td>
+                        <td>@StockMovementPrice(movement.Amount, movement.Article.Price)</td>
+                        <td class="text-center"><button class="btn btn-danger" @onclick="() => DeleteStockMovement(movement)">🗑️</button></td>
+                    </tr>
+                }
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>Total price:</td>
+                    <td>@totalPrice</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="btn btn-danger" @onclick="() => BackToBusinessCases()">GO BACK</button>
+
+    </Authorized>
+    <NotAuthorized>
+        <h3>Permission denied!</h3>
+        <p>You have to be logged in to use this site!</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    [Parameter]
+    public string businessCaseID { get; set; }
+
+    private decimal totalPrice;
+    List<StockMovement> stockMovements;
+
+    protected override void OnInitialized()
+    {
+        stockMovements = warehouseService.GetStockMovements(Convert.ToInt32(businessCaseID));
+    }
+
+    private void BackToBusinessCases()
+    {
+        navMan.NavigateTo("/business-cases", true);
+    }
+
+    private decimal StockMovementPrice(int amount, decimal price)
+    {
+        totalPrice += amount * price;
+        return amount * price;
+    }   
+
+    private void AddStockMovement(string ID)
+    {
+        navMan.NavigateTo("/business-cases/" + ID + "/new-stock-movement");
+    }
+
+    private void DeleteStockMovement(StockMovement stockMovement)
+    {
+        totalPrice = 0;
+        warehouseService.DeleteStockMovement(stockMovement);
+        stockMovements = warehouseService.GetStockMovements(Convert.ToInt32(businessCaseID));
+    }
+
+}

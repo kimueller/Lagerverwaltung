@@ -1,0 +1,80 @@
+﻿@page "/business-cases"
+@using WarehouseManagment.Data.Models;
+@using WarehouseManagment.Data.Services;
+@inject IWarehouseService warehouseService
+@inject NavigationManager navMan
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<AuthorizeView>
+    <Authorized>
+        <h3>Business cases</h3>
+        <label>Add new business case:</label>
+        <button class="btn btn-success border-1" @onclick="() => AddBusinessCase()">NEW CASE</button>
+        <table class="table table-hover text-center">
+            <thead>
+                <tr>
+                    <th>CaseNumber</th>
+                    <th>Created On</th>
+                    <th>Employee</th>
+                    <th>Edit case</th>
+                    <th>Delete case</th>
+                    <th>Open case</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var bc in businessCases)
+                {
+                    <tr>
+                        <td>@bc.BusinessCaseID</td>
+                        <td>@bc.CreationTime</td>
+                        <td>@bc.Employee.FirstName @bc.Employee.LastName</td>
+                        <td class="text-center"><button class="btn btn-warning" @onclick="() => EditBusinessCase(bc.BusinessCaseID)">✏️</button></td>
+                        <td class="text-center"><button class="btn btn-danger" @onclick="() => DeleteBusinessCase(bc)">🗑️</button></td>
+                        <td class="text-center"><button class="btn btn-dark" @onclick="() => OpenBusinessCase(bc.BusinessCaseID)">📖</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </Authorized>
+    <NotAuthorized>
+        <h3>Permission denied!</h3>
+        <p>You have to be logged in to use this site!</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    List<BusinessCase> businessCases;
+    string eMail;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        eMail = user.Identity.Name;
+    }
+    protected override void OnInitialized()
+    {
+        businessCases = warehouseService.GetBusinessCases();
+    }
+    private void AddBusinessCase()
+    {
+        navMan.NavigateTo("/business-cases/" + warehouseService.NewBusinessCase(eMail).ToString(), true);
+    }
+    private void OpenBusinessCase(int ID)
+    {
+        navMan.NavigateTo("/business-cases/" + ID.ToString(), true);
+    }
+    private void EditBusinessCase(int ID)
+    {
+        navMan.NavigateTo("/business-cases/" + ID.ToString() + "/edit", true);
+    }
+    private void DeleteBusinessCase(BusinessCase businessCase)
+    {
+        warehouseService.DeleteBusinessCase(businessCase);
+        businessCases = warehouseService.GetBusinessCases();
+    }
+
+
+}

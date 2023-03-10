@@ -1,0 +1,46 @@
+﻿@page "/articles"
+@using WarehouseManagment.Data.Models;
+@using WarehouseManagment.Data.Services;
+@inject IWarehouseService warehouseService
+
+<AuthorizeView>
+    <Authorized>
+        <h3>Articles</h3>
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th class="text-center">ArticleNumber</th>
+                    <th>Name</th>
+                    <th class="text-center">Stock</th>
+                    <th class="text-center">Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var article in articles)
+                {
+                    <tr>
+                        <td class="text-center">@article.ArticleID</td>
+                        <td>@article.ArticleName</td>
+                        <td class="text-center">@article.Stock</td>
+                        <td class="text-center">@article.Price</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </Authorized>
+    <NotAuthorized>
+        <h3>Permission denied!</h3>
+        <p>You have to be logged in to use this site!</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private List<Article> articles;
+
+    protected override void OnInitialized()
+    {
+        articles = warehouseService.GetArticles();
+    }
+
+}

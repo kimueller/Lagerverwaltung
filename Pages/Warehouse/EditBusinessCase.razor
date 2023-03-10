@@ -1,0 +1,56 @@
+﻿@page "/business-cases/{businessCaseID}/edit/"
+@using WarehouseManagment.Data.Models;
+@using WarehouseManagment.Data.Services;
+@inject IWarehouseService warehouseService
+@inject NavigationManager navMan
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Edit business case</h3>
+<h5>Business case : @businessCaseID</h5>
+<EditForm Model="@businessCase" OnValidSubmit="@Submit">
+    <div class="form-group">
+        <label for="CreationTime">Created On</label>
+        <InputDate @bind-Value="@businessCase.CreationTime" class="form-control"></InputDate>
+    </div>
+    <div class="form-group">
+        <label for="Employee">Employee</label>
+        <InputSelect @bind-Value="@businessCase.EmployeeID" class="form-control">
+            @foreach (var employee in employees)
+            {
+                <option value="@employee.Id">@employee.FirstName @employee.LastName</option>
+            }
+        </InputSelect>
+    </div>
+    <br />
+    <button class="btn btn-dark">Edit</button>
+</EditForm>
+
+
+@code {
+    [Parameter]
+    public string businessCaseID { get; set; }
+
+    BusinessCase businessCase = new BusinessCase();
+
+
+    List<Employee> employees;
+    string eMail;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        eMail = user.Identity.Name;
+    }
+    protected override void OnInitialized()
+    {
+        employees = warehouseService.GetEmployees();
+    }
+    private void Submit()
+    {
+        businessCase.BusinessCaseID = Convert.ToInt32(businessCaseID);
+        warehouseService.EditBusinessCase(businessCase, eMail);
+        navMan.NavigateTo("/business-cases/", true);
+    }
+}
